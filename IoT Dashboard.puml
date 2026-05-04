@@ -1,0 +1,176 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+abstract class SmartDevice {
+  - id : int
+  - name : String
+  - room : String
+  - isOn : boolean
+  - powerUsage : double
+  - favorite : boolean
+
+  + SmartDevice(id:int, name:String, room:String, powerUsage:double)
+  + getId() : int
+  + getName() : String
+  + setName(name:String) : void
+  + getRoom() : String
+  + setRoom(room:String) : void
+  + isOn() : boolean
+  + turnOn() : void
+  + turnOff() : void
+  + getPowerUsage() : double
+  + setPowerUsage(powerUsage:double) : void
+  + isFavorite() : boolean
+  + setFavorite(favorite:boolean) : void
+  + calculateDailyConsumption(hours:int) : double
+  + validateText(value:String, fieldName:String) : void
+  + getStatusText() : String
+  {abstract} + getDeviceType() : String
+  {abstract} + performAction() : String
+}
+
+class SmartLight {
+  - brightness : int
+  - color : String
+
+  + SmartLight(id:int, name:String, room:String, powerUsage:double, brightness:int, color:String)
+  + getBrightness() : int
+  + setBrightness(brightness:int) : void
+  + getColor() : String
+  + setColor(color:String) : void
+  + dim(percent:int) : void
+  + changeColor(color:String) : void
+  + getDeviceType() : String
+  + performAction() : String
+}
+
+class SmartThermostat {
+  - currentTemperature : double
+  - targetTemperature : double
+
+  + SmartThermostat(id:int, name:String, room:String, powerUsage:double, currentTemperature:double, targetTemperature:double)
+  + getCurrentTemperature() : double
+  + setCurrentTemperature(currentTemperature:double) : void
+  + getTargetTemperature() : double
+  + setTargetTemperature(targetTemperature:double) : void
+  + increaseTargetTemperature(value:double) : void
+  + decreaseTargetTemperature(value:double) : void
+  + isHeatingNeeded() : boolean
+  + getDeviceType() : String
+  + performAction() : String
+}
+
+class SmartSpeaker {
+  - volume : int
+  - currentSong : String
+
+  + SmartSpeaker(id:int, name:String, room:String, powerUsage:double, volume:int, currentSong:String)
+  + getVolume() : int
+  + setVolume(volume:int) : void
+  + getCurrentSong() : String
+  + setCurrentSong(currentSong:String) : void
+  + increaseVolume() : void
+  + decreaseVolume() : void
+  + playSong(song:String) : void
+  + getDeviceType() : String
+  + performAction() : String
+}
+
+class SmartHomeManager {
+  - devices : List<SmartDevice>
+  - logs : List<String>
+
+  + SmartHomeManager()
+  + addDevice(device:SmartDevice) : void
+  + removeDevice(id:int) : void
+  + updateDevice(device:SmartDevice) : void
+  + findDeviceById(id:int) : SmartDevice
+  + searchByName(name:String) : List<SmartDevice>
+  + getAllDevices() : List<SmartDevice>
+  + filterByRoom(room:String) : List<SmartDevice>
+  + filterByType(type:String) : List<SmartDevice>
+  + filterByStatus(isOn:boolean) : List<SmartDevice>
+  + filterFavorites() : List<SmartDevice>
+  + sortByName() : List<SmartDevice>
+  + sortByPowerUsage() : List<SmartDevice>
+  + groupByRoom() : Map<String, List<SmartDevice>>
+  + groupByType() : Map<String, List<SmartDevice>>
+  + getTotalPowerUsage() : double
+  + getAveragePowerUsage() : double
+  + getHighestPowerUsageDevice() : SmartDevice
+  + getActiveDeviceCount() : int
+  + filterByRoomAndSortByPowerUsage(room:String) : List<SmartDevice>
+  + markAsFavorite(id:int) : void
+  + unmarkAsFavorite(id:int) : void
+  + addLog(message:String) : void
+  + getLogs() : List<String>
+}
+
+class SmartHomeFileHandler {
+  - filePath : String
+
+  + SmartHomeFileHandler(filePath:String)
+  + saveDevices(devices:List<SmartDevice>) : void
+  + loadDevices() : List<SmartDevice>
+  + deviceToCsv(device:SmartDevice) : String
+  + csvToDevice(line:String) : SmartDevice
+}
+
+class SmartHomeException {
+  + SmartHomeException(message:String)
+}
+
+class DashboardView {
+  - manager : SmartHomeManager
+
+  + DashboardView(manager:SmartHomeManager)
+  + updateStatistics() : void
+  + createStatisticCards() : void
+}
+
+class DeviceListView {
+  - manager : SmartHomeManager
+  - grid : Grid<SmartDevice>
+
+  + DeviceListView(manager:SmartHomeManager)
+  + refreshGrid() : void
+  + applyFilters() : void
+  + deleteSelectedDevice() : void
+}
+
+class DeviceFormView {
+  - manager : SmartHomeManager
+
+  + DeviceFormView(manager:SmartHomeManager)
+  + createForm() : void
+  + saveDevice() : void
+  + clearForm() : void
+}
+
+class SmartHomeManagerTest {
+  - manager : SmartHomeManager
+
+  + setup() : void
+  + testAddDevice() : void
+  + testRemoveDevice() : void
+  + testFilterByRoom() : void
+  + testSortByPowerUsage() : void
+  + testTotalPowerUsage() : void
+}
+
+SmartDevice <|-- SmartLight
+SmartDevice <|-- SmartThermostat
+SmartDevice <|-- SmartSpeaker
+
+SmartHomeManager "1" o-- "*" SmartDevice
+SmartHomeManager ..> SmartHomeException
+SmartHomeFileHandler ..> SmartDevice
+SmartHomeFileHandler ..> SmartHomeException
+
+DashboardView --> SmartHomeManager
+DeviceListView --> SmartHomeManager
+DeviceFormView --> SmartHomeManager
+
+SmartHomeManagerTest --> SmartHomeManager
+
+@enduml
