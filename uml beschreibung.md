@@ -1,62 +1,304 @@
-# IoT Dashboard Projekt - Projektbeschreibung
+# IoT Dashboard Projekt - Klassendokumentation
 
-## Überblick
+## Klassenübersicht und Zusammenhänge
 
-Das **IoT Dashboard Projekt** ist eine vollständige Webanwendung zur Verwaltung und Überwachung von Smart-Home-Geräten. Die Anwendung ermöglicht es Benutzern, verschiedene intelligente Geräte wie Lampen, Thermostate und andere IoT-Geräte zu steuern, zu überwachen und zu organisieren.
+```
+                          SmartDevice (abstrakt)
+                                  ▲
+                         _________|_________
+                        |        |         |
+                   SmartLight  SmartThermostat  SmartSpeaker
+                   
+                   SmartHomeManager (Verwaltung)
+                           ▲
+                           |
+                    Kontrolliert
+                           |
+            ┌──────────────┼──────────────┐
+            |              |              |
+      DashboardView   DeviceListView  DeviceFormView
+      
+      SmartHomeFileHandler (Persistierung)
+      SmartHomeException (Fehlerbehandlung)
+```
 
-## Technologie-Stack
+---
 
-- **Backend:** Java 25, Spring Boot 4.0.5
-- **Frontend:** Vaadin 25.1.3 (moderne, responsive Web-UI)
-- **Datenbank:** H2 (In-Memory Database)
-- **Build-Tool:** Maven
-- **Containerisierung:** Docker
+## 🎯 Kern-Klassen
 
-## Hauptfunktionalitäten
+### 1. **SmartDevice** (Abstrakte Basisklasse)
 
-### Gerätemanagement
-- **Geräteverwaltung:** Alle Smart-Home-Geräte können hinzugefügt, bearbeitet und gelöscht werden
-- **Gerätsteuerung:** Ein-/Ausschalten und Konfiguration von Geräten
-- **Favoriten:** Geräte können als Favoriten markiert werden für schnellen Zugriff
-- **Raum-Organisation:** Geräte können nach Räumen kategorisiert werden
+**Zweck:** Gemeinsame Schnittstelle für alle IoT-Geräte
 
-### Gerättypen
-Das System unterstützt verschiedene Gerätetypen:
-- **SmartLight:** Intelligente Lampen mit Helligkeits- und Farbsteuerung
-- **SmartThermostat:** Intelligente Thermostate zur Temperaturkontrolle
-- Weitere erweiterbare Gerätetypen durch die abstrakte `SmartDevice`-Klasse
+**Attribute:**
+- `id` - Eindeutige Gerät-ID
+- `name` - Gerätename (z.B. "Wohnzimmerlampe")
+- `room` - Raum, in dem das Gerät steht
+- `turnedOn` - Zustand (an/aus)
+- `powerUsage` - Stromverbrauch in Watt
+- `favorite` - Als Favorit markiert?
 
-### Energiemanagement
-- **Stromverbrauch-Überwachung:** Verfolgung des Energieverbrauchs einzelner Geräte
-- **Tagesverbrauch-Berechnung:** Berechnung des täglichen Stromverbrauchs basierend auf Betriebsdauer
-- **Persistenter Datenspeicher:** Speicherung von Geräten in CSV-Format
+**Wichtige Methoden:**
+| Methode | Was macht es |
+|---------|-------------|
+| `turnOn()` | Schaltet das Gerät ein |
+| `turnOff()` | Schaltet das Gerät aus |
+| `getStatusText()` | Gibt "Ein" oder "Aus" zurück |
+| `validateText(String, String)` | Prüft, ob Texte nicht leer sind |
+| `abstract getDeviceType()` | Muss von Unterklassen implementiert werden |
+| `abstract performAction()` | Muss von Unterklassen implementiert werden |
 
-## Architektur
+**Besonderheit:** Diese Klasse ist abstrakt - man kann sie nicht direkt benutzen, sondern nur von ihr erben.
 
-Die Anwendung folgt einer **Model-View-Controller (MVC)**-Architektur:
+---
 
-### Frontend (Views mit Vaadin)
-- **DeviceListView:** Hauptansicht mit Geräteliste und Verwaltungsfunktionen
-- **DeviceFormView:** Formular zum Hinzufügen/Bearbeiten von Geräten
-- **DashboardView:** Dashboard-Übersicht mit Statistiken und Schnellzugriffen
+### 2. **SmartLight** (Erbt von SmartDevice)
 
-### Backend (Java-Services)
-- **SmartDevice:** Abstrakte Basisklasse für alle Gerätetypen
-- **SmartHomeFileHandler:** Verwaltet das Laden und Speichern von Geräten
-- **SmartHomeException:** Zentrale Exception-Behandlung für Fehlerbehandlung
+**Zweck:** Intelligente Lampe mit Farb- und Helligkeitssteuerung
 
-## Datenspeicherung
+**Zusätzliche Attribute:**
+- `brightness` - Helligkeit in % (0-100)
+- `color` - Farbe der Lampe (z.B. "Rot", "Weiß")
 
-- Geräte werden in einer **CSV-Datei** (`devices.csv`) persistent gespeichert
-- Das System validiert alle Eingaben und wirft aussagekräftige Exceptions bei ungültigen Daten
+**Besondere Fähigkeiten:**
+- Über `getBrightness()` kann die aktuelle Helligkeit abgefragt werden
+- Über `getColor()` kann die Farbe abgefragt werden
+- `performAction()` gibt aus: "Die Lampe leuchtet in [Farbe] mit [Helligkeit]% Helligkeit."
 
-## Besonderheiten
+**Beispiel:**
+```java
+SmartLight lampe = new SmartLight(1, "Schreibtischlampe", "Arbeitszimmer", 15.0, 80, "Blau");
+System.out.println(lampe.performAction()); 
+// Ausgabe: Die Lampe leuchtet in Blau mit 80% Helligkeit.
+```
 
-✅ **Objektorientiert:** Umfassende Verwendung von Vererbung und abstrakten Klassen  
-✅ **Fehlerbehandlung:** Robuste Exception-Behandlung mit aussagekräftigen Fehlermeldungen  
-✅ **Validierung:** Eingabevalidierung für alle Geräteparameter  
-✅ **Docker-Support:** Containerisierung für einfache Deployment  
-✅ **Moderne UI:** Responsive und benutzerfreundliche Vaadin-Interface  
+---
+
+### 3. **SmartThermostat** (Erbt von SmartDevice)
+
+**Zweck:** Intelligentes Thermostat zur Temperaturregelung
+
+**Zusätzliche Attribute:**
+- `currentTemperature` - Aktuelle Raumtemperatur
+- `targetTemperature` - Zieltemperatur
+
+**Besondere Fähigkeiten:**
+- Über `getCurrentTemperature()` kann die aktuelle Temperatur abgefragt werden
+- Über `getTargetTemperature()` kann die Zieltemperatur abgefragt werden
+- `performAction()` gibt aus: "Heizung auf Zieltemperatur [Temp]°C eingestellt."
+
+**Beispiel:**
+```java
+SmartThermostat heizung = new SmartThermostat(2, "Wohnzimmer Heizung", "Wohnzimmer", 2500.0, 19.5, 22.0);
+System.out.println(heizung.performAction()); 
+// Ausgabe: Heizung auf Zieltemperatur 22.0°C eingestellt.
+```
+
+---
+
+### 4. **SmartSpeaker** (Erbt von SmartDevice)
+
+**Zweck:** Intelligenter Lautsprecher mit Musikwiedergabe
+
+**Zusätzliche Attribute:**
+- `volume` - Lautstärke (0-100)
+- `currentSong` - Aktuell abgespielte Musik
+
+**Besondere Fähigkeiten:**
+- Über `getVolume()` kann die Lautstärke abgefragt werden
+- Über `getCurrentSong()` kann abgefragt werden, welche Musik spielt
+- `performAction()` gibt aus: "Lautsprecher spielt '[Lied]' (Lautstärke: [Volume])."
+
+**Beispiel:**
+```java
+SmartSpeaker speaker = new SmartSpeaker(3, "Alexa", "Küche", 10.0, 70, "Bohemian Rhapsody");
+System.out.println(speaker.performAction()); 
+// Ausgabe: Lautsprecher spielt 'Bohemian Rhapsody' (Lautstärke: 70).
+```
+
+---
+
+## 📊 Service-Klassen
+
+### 5. **SmartHomeManager** (Verwaltungs-Service)
+
+**Zweck:** Zentrale Verwaltung aller Geräte
+
+**Funktionen:**
+| Methode | Was macht es |
+|---------|-------------|
+| `addDevice(SmartDevice)` | Fügt ein Gerät hinzu |
+| `removeDevice(SmartDevice)` | Entfernt ein Gerät (per Objekt) |
+| `removeDevice(int id)` | Entfernt ein Gerät (per ID) |
+| `getAllDevices()` | Gibt alle Geräte als Liste zurück |
+| `getDeviceCount()` | Zählt die Anzahl der Geräte |
+| `getTotalPowerUsage()` | Berechnet den gesamten Stromverbrauch |
+| `getAveragePowerUsage()` | Berechnet den durchschnittlichen Verbrauch |
+| `getActiveDeviceCount()` | Zählt die eingeschalteten Geräte |
+| `filterFavorites()` | Gibt nur Favoriten zurück |
+
+**Zusammenhang:** Dieser Manager wird von allen View-Klassen benutzt, um Geräte zu verwalten.
+
+---
+
+### 6. **SmartHomeException** (Fehlerbehandlung)
+
+**Zweck:** Eigene Exception für Smart-Home-Fehler
+
+**Verwendung:** Wird geworfen, wenn etwas schiefgeht, z.B.:
+- Leere Texteingaben
+- Ungültige Geräteparameter
+- Fehler beim Speichern/Laden
+
+**Beispiel:**
+```java
+throw new SmartHomeException("Name darf nicht leer sein.");
+```
+
+---
+
+### 7. **SmartHomeFileHandler** (Persistierung)
+
+**Zweck:** Speichert und lädt Geräte in/aus CSV-Datei
+
+**Funktionen:**
+| Methode | Was macht es |
+|---------|-------------|
+| `saveDevices(List<SmartDevice>)` | Speichert alle Geräte in `devices.csv` |
+| `loadDevices()` | Lädt alle Geräte aus `devices.csv` |
+| `deviceToCsv(SmartDevice)` | Konvertiert Gerät zu CSV-Format |
+| `csvToDevice(String)` | Konvertiert CSV-Zeile zu Gerät-Objekt |
+
+**CSV-Format Beispiel:**
+```csv
+Light;1;Schreibtischlampe;Arbeitszimmer;true;15.0;false;80;Blau
+Thermostat;2;Heizung;Wohnzimmer;true;2500.0;true;19.5;22.0
+Speaker;3;Alexa;Küche;false;10.0;false;70;Bohemian Rhapsody
+```
+
+---
+
+## 🎨 Benutzeroberflächen-Klassen (Views mit Vaadin)
+
+### 8. **DashboardView** (Start-Seite)
+
+**Zweck:** Zeigt eine Übersicht und Statistiken
+
+**Was wird angezeigt:**
+- ✅ Gesamtverbrauch aller Geräte in Watt
+- ✅ Durchschnittlicher Stromverbrauch
+- ✅ Anzahl der aktiven (eingeschalteten) Geräte
+- ✅ Anzahl der Favoriten
+
+**Zugriff:** `http://localhost:8080/` (oder direkt home)
+
+---
+
+### 9. **DeviceListView** (Geräte-Verwaltung)
+
+**Zweck:** Zeigt alle Geräte in einer Tabelle und erlaubt das Löschen
+
+**Funktionen:**
+- 📋 Tabellenübersicht mit:
+  - ID
+  - Name
+  - Raum
+  - Gerätetyp (Light, Thermostat, Speaker)
+  - Status (Ein/Aus)
+  - Löschen-Button (Rot)
+
+**Zugriff:** `http://localhost:8080/devices` (Menü: "Geräteliste")
+
+**Code-Zusammenhang:**
+```java
+public DeviceListView(SmartHomeManager manager) {
+    // Grid = Tabelle, die von SmartHomeManager alle Geräte bekommt
+    grid.setItems(manager.getAllDevices());
+}
+```
+
+---
+
+### 10. **DeviceFormView** (Gerät hinzufügen)
+
+**Zweck:** Formular zum Erstellen neuer Geräte
+
+**Eingabefelder:**
+- ID-Nummer
+- Gerätename
+- Raum
+- Stromverbrauch (in Watt)
+
+**Besonderheit:** Speichert derzeit nur als `SmartLight` mit fester Helligkeit (100) und Farbe ("Weiß")
+
+**Zugriff:** `http://localhost:8080/add-device` (Menü: "Gerät hinzufügen")
+
+**Code-Zusammenhang:**
+```java
+private void saveDevice() {
+    SmartDevice light = new SmartLight(...); // Neues Gerät erstellen
+    manager.addDevice(light);               // Zum Manager hinzufügen
+    refreshGrid();                          // Tabelle aktualisieren
+}
+```
+
+---
+
+## 🔗 Zusammenspiel aller Klassen
+
+```
+Benutzer nutzt UI
+        ↓
+[DashboardView] [DeviceListView] [DeviceFormView]
+        ↓              ↓                 ↓
+        └──────────────┴─────────────────┘
+                       ↓
+              SmartHomeManager
+              (verwaltet alle Geräte)
+                       ↓
+         ┌─────────────┼─────────────┐
+         ↓             ↓             ↓
+    SmartLight  SmartThermostat  SmartSpeaker
+         ↓             ↓             ↓
+         └─────────────┴─────────────┘
+                       ↓
+              SmartDevice (abstrakt)
+                       ↓
+              SmartHomeFileHandler
+              (speichert/lädt in CSV)
+                       ↓
+              SmartHomeException
+              (bei Fehlern)
+```
+
+---
+
+## 📝 Ablauf eines typischen Szenarios
+
+### Szenario: "Neue Lampe hinzufügen"
+
+1. **Benutzer** öffnet DeviceFormView
+2. **Benutzer** füllt Formular aus (ID, Name, Raum, Watt)
+3. **DeviceFormView.saveDevice()** wird aufgerufen
+4. Ein neues `SmartLight`-Objekt wird erstellt
+5. `SmartHomeManager.addDevice()` wird aufgerufen
+6. Gerät wird in die interne Liste eingefügt
+7. **DeviceListView.refreshGrid()** aktualisiert die Tabelle
+8. **DashboardView.updateStatistics()** aktualisiert die Statistiken
+9. (Optional) `SmartHomeFileHandler.saveDevices()` speichert alles in CSV
+
+---
+
+## 🎓 Wichtige OOP-Konzepte
+
+| Konzept | Wie verwendet |
+|---------|--------------|
+| **Vererbung** | `SmartLight`, `SmartThermostat`, `SmartSpeaker` erben von `SmartDevice` |
+| **Abstraktion** | `SmartDevice` ist abstrakt, `getDeviceType()` und `performAction()` müssen implementiert werden |
+| **Polymorphismus** | Jedes Gerät kann `performAction()` unterschiedlich implementieren |
+| **Encapsulation** | Private Attribute mit Getter/Setter-Methoden |
+| **Exception Handling** | `SmartHomeException` für Fehlerbehandlung |
+| **Dependency Injection** | `SmartHomeManager` wird in Views injiziert |  
 
 ---
 
