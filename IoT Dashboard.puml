@@ -120,42 +120,14 @@ class SmartHomeException {
   + SmartHomeException(message:String)
 }
 
-class DashboardView {
-  - manager : SmartHomeManager
-
-  + DashboardView(manager:SmartHomeManager)
-  + updateStatistics() : void
-  + createStatisticCards() : void
-}
-
-class DeviceListView {
-  - manager : SmartHomeManager
-  - grid : Grid<SmartDevice>
-
-  + DeviceListView(manager:SmartHomeManager)
-  + refreshGrid() : void
-  + applyFilters() : void
-  + deleteSelectedDevice() : void
-}
-
-class DeviceFormView {
-  - manager : SmartHomeManager
-
-  + DeviceFormView(manager:SmartHomeManager)
-  + createForm() : void
-  + saveDevice() : void
-  + clearForm() : void
-}
-
-class SmartHomeManagerTest {
-  - manager : SmartHomeManager
-
-  + setup() : void
-  + testAddDevice() : void
-  + testRemoveDevice() : void
-  + testFilterByRoom() : void
-  + testSortByPowerUsage() : void
-  + testTotalPowerUsage() : void
+class SmartHomeDeviceTest {
+  + setUp() : void
+  + testSmartLightCreation() : void
+  + testSmartThermostatCreation() : void
+  + testSmartSpeakerCreation() : void
+  + testDeviceTurnOnOff() : void
+  + testDeviceValidation() : void
+  + testPerformAction() : void
 }
 
 SmartDevice <|-- SmartLight
@@ -167,10 +139,9 @@ SmartHomeManager ..> SmartHomeException
 SmartHomeFileHandler ..> SmartDevice
 SmartHomeFileHandler ..> SmartHomeException
 
-DashboardView --> SmartHomeManager
-DeviceListView --> SmartHomeManager
-DeviceFormView --> SmartHomeManager
-
-SmartHomeManagerTest --> SmartHomeManager
+SmartHomeDeviceTest --> SmartDevice
+SmartHomeDeviceTest --> SmartLight
+SmartHomeDeviceTest --> SmartThermostat
+SmartHomeDeviceTest --> SmartSpeaker
 
 @enduml

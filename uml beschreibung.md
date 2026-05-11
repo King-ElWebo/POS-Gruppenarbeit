@@ -16,10 +16,7 @@
                            |
             ┌──────────────┼──────────────┐
             |              |              |
-      DashboardView   DeviceListView  DeviceFormView
-      
-      SmartHomeFileHandler (Persistierung)
-      SmartHomeException (Fehlerbehandlung)
+      SmartHomeFileHandler  SmartHomeException  SmartHomeDeviceTest
 ```
 
 ---
@@ -178,69 +175,34 @@ Speaker;3;Alexa;Küche;false;10.0;false;70;Bohemian Rhapsody
 
 ---
 
-## 🎨 Benutzeroberflächen-Klassen (Views mit Vaadin)
+## 🧪 Test-Klassen
 
-### 8. **DashboardView** (Start-Seite)
+### 11. **SmartHomeDeviceTest** (JUnit-Tests)
 
-**Zweck:** Zeigt eine Übersicht und Statistiken
+**Zweck:** Automatisierte Tests für alle Geräte-Klassen
 
-**Was wird angezeigt:**
-- ✅ Gesamtverbrauch aller Geräte in Watt
-- ✅ Durchschnittlicher Stromverbrauch
-- ✅ Anzahl der aktiven (eingeschalteten) Geräte
-- ✅ Anzahl der Favoriten
+**Test-Methoden:**
+| Test-Methode | Was wird getestet |
+|-------------|-------------------|
+| `testSmartLightCreation()` | Erstellung von SmartLight-Objekten |
+| `testSmartThermostatCreation()` | Erstellung von SmartThermostat-Objekten |
+| `testSmartSpeakerCreation()` | Erstellung von SmartSpeaker-Objekten |
+| `testDeviceTurnOnOff()` | Ein-/Ausschalten-Funktionalität |
+| `testDeviceValidation()` | Validierung von Eingabeparametern |
+| `testPerformAction()` | `performAction()`-Methoden aller Geräte |
 
-**Zugriff:** `http://localhost:8080/` (oder direkt home)
-
----
-
-### 9. **DeviceListView** (Geräte-Verwaltung)
-
-**Zweck:** Zeigt alle Geräte in einer Tabelle und erlaubt das Löschen
-
-**Funktionen:**
-- 📋 Tabellenübersicht mit:
-  - ID
-  - Name
-  - Raum
-  - Gerätetyp (Light, Thermostat, Speaker)
-  - Status (Ein/Aus)
-  - Löschen-Button (Rot)
-
-**Zugriff:** `http://localhost:8080/devices` (Menü: "Geräteliste")
-
-**Code-Zusammenhang:**
+**Beispiel-Test:**
 ```java
-public DeviceListView(SmartHomeManager manager) {
-    // Grid = Tabelle, die von SmartHomeManager alle Geräte bekommt
-    grid.setItems(manager.getAllDevices());
+@Test
+public void testSmartLightCreation() {
+    SmartLight light = new SmartLight(1, "Lampe", "Zimmer", 10.0, 80, "Blau");
+    assertEquals("Light", light.getDeviceType());
+    assertEquals(80, light.getBrightness());
+    assertEquals("Blau", light.getColor());
 }
 ```
 
----
-
-### 10. **DeviceFormView** (Gerät hinzufügen)
-
-**Zweck:** Formular zum Erstellen neuer Geräte
-
-**Eingabefelder:**
-- ID-Nummer
-- Gerätename
-- Raum
-- Stromverbrauch (in Watt)
-
-**Besonderheit:** Speichert derzeit nur als `SmartLight` mit fester Helligkeit (100) und Farbe ("Weiß")
-
-**Zugriff:** `http://localhost:8080/add-device` (Menü: "Gerät hinzufügen")
-
-**Code-Zusammenhang:**
-```java
-private void saveDevice() {
-    SmartDevice light = new SmartLight(...); // Neues Gerät erstellen
-    manager.addDevice(light);               // Zum Manager hinzufügen
-    refreshGrid();                          // Tabelle aktualisieren
-}
-```
+**Zusammenhang:** Testet alle Unterklassen von `SmartDevice` auf korrekte Funktionalität.
 
 ---
 
@@ -273,19 +235,49 @@ Benutzer nutzt UI
 
 ---
 
-## 📝 Ablauf eines typischen Szenarios
+## 🧪 Test-Zusammenhang
 
-### Szenario: "Neue Lampe hinzufügen"
+```
+SmartHomeDeviceTest
+        ↓
+    Testet alle Geräte-Klassen
+        ↓
+SmartDevice ← SmartLight, SmartThermostat, SmartSpeaker
+```
 
-1. **Benutzer** öffnet DeviceFormView
-2. **Benutzer** füllt Formular aus (ID, Name, Raum, Watt)
-3. **DeviceFormView.saveDevice()** wird aufgerufen
-4. Ein neues `SmartLight`-Objekt wird erstellt
-5. `SmartHomeManager.addDevice()` wird aufgerufen
-6. Gerät wird in die interne Liste eingefügt
-7. **DeviceListView.refreshGrid()** aktualisiert die Tabelle
-8. **DashboardView.updateStatistics()** aktualisiert die Statistiken
-9. (Optional) `SmartHomeFileHandler.saveDevices()` speichert alles in CSV
+---
+
+## 🧪 Test-Szenario: "Geräte-Funktionalität testen"
+
+### Szenario: "JUnit-Tests für alle Geräte ausführen"
+
+1. **Entwickler** führt `SmartHomeDeviceTest` aus
+2. **testSmartLightCreation()** erstellt ein `SmartLight`-Objekt
+3. **testDeviceTurnOnOff()** testet Ein-/Ausschalten
+4. **testDeviceValidation()** prüft, ob Exceptions bei ungültigen Eingaben geworfen werden
+5. **testPerformAction()** verifiziert die spezifischen Aktionen jedes Gerätetyps
+6. **JUnit-Runner** zeigt grüne Tests bei Erfolg oder rote bei Fehlern
+
+**Beispiel-Test-Code:**
+```java
+@Test
+public void testDeviceTurnOnOff() {
+    SmartLight light = new SmartLight(1, "Lampe", "Zimmer", 10.0, 80, "Blau");
+    
+    // Test: Gerät ist anfangs aus
+    assertFalse(light.isTurnedOn());
+    
+    // Test: Einschalten
+    light.turnOn();
+    assertTrue(light.isTurnedOn());
+    assertEquals("Ein", light.getStatusText());
+    
+    // Test: Ausschalten
+    light.turnOff();
+    assertFalse(light.isTurnedOn());
+    assertEquals("Aus", light.getStatusText());
+}
+```
 
 ---
 
