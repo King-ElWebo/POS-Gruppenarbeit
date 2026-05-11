@@ -1,3 +1,65 @@
+# IoT Dashboard Projekt - Projektbeschreibung
+
+## Überblick
+
+Das **IoT Dashboard Projekt** ist eine vollständige Webanwendung zur Verwaltung und Überwachung von Smart-Home-Geräten. Die Anwendung ermöglicht es Benutzern, verschiedene intelligente Geräte wie Lampen, Thermostate und andere IoT-Geräte zu steuern, zu überwachen und zu organisieren.
+
+## Technologie-Stack
+
+- **Backend:** Java 25, Spring Boot 4.0.5
+- **Frontend:** Vaadin 25.1.3 (moderne, responsive Web-UI)
+- **Datenbank:** H2 (In-Memory Database)
+- **Build-Tool:** Maven
+- **Containerisierung:** Docker
+
+## Hauptfunktionalitäten
+
+### Gerätemanagement
+- **Geräteverwaltung:** Alle Smart-Home-Geräte können hinzugefügt, bearbeitet und gelöscht werden
+- **Gerätsteuerung:** Ein-/Ausschalten und Konfiguration von Geräten
+- **Favoriten:** Geräte können als Favoriten markiert werden für schnellen Zugriff
+- **Raum-Organisation:** Geräte können nach Räumen kategorisiert werden
+
+### Gerättypen
+Das System unterstützt verschiedene Gerätetypen:
+- **SmartLight:** Intelligente Lampen mit Helligkeits- und Farbsteuerung
+- **SmartThermostat:** Intelligente Thermostate zur Temperaturkontrolle
+- Weitere erweiterbare Gerätetypen durch die abstrakte `SmartDevice`-Klasse
+
+### Energiemanagement
+- **Stromverbrauch-Überwachung:** Verfolgung des Energieverbrauchs einzelner Geräte
+- **Tagesverbrauch-Berechnung:** Berechnung des täglichen Stromverbrauchs basierend auf Betriebsdauer
+- **Persistenter Datenspeicher:** Speicherung von Geräten in CSV-Format
+
+## Architektur
+
+Die Anwendung folgt einer **Model-View-Controller (MVC)**-Architektur:
+
+### Frontend (Views mit Vaadin)
+- **DeviceListView:** Hauptansicht mit Geräteliste und Verwaltungsfunktionen
+- **DeviceFormView:** Formular zum Hinzufügen/Bearbeiten von Geräten
+- **DashboardView:** Dashboard-Übersicht mit Statistiken und Schnellzugriffen
+
+### Backend (Java-Services)
+- **SmartDevice:** Abstrakte Basisklasse für alle Gerätetypen
+- **SmartHomeFileHandler:** Verwaltet das Laden und Speichern von Geräten
+- **SmartHomeException:** Zentrale Exception-Behandlung für Fehlerbehandlung
+
+## Datenspeicherung
+
+- Geräte werden in einer **CSV-Datei** (`devices.csv`) persistent gespeichert
+- Das System validiert alle Eingaben und wirft aussagekräftige Exceptions bei ungültigen Daten
+
+## Besonderheiten
+
+✅ **Objektorientiert:** Umfassende Verwendung von Vererbung und abstrakten Klassen  
+✅ **Fehlerbehandlung:** Robuste Exception-Behandlung mit aussagekräftigen Fehlermeldungen  
+✅ **Validierung:** Eingabevalidierung für alle Geräteparameter  
+✅ **Docker-Support:** Containerisierung für einfache Deployment  
+✅ **Moderne UI:** Responsive und benutzerfreundliche Vaadin-Interface  
+
+---
+
 ## Abstrakte Klasse SmartDevice
 
 `SmartDevice` ist die abstrakte Oberklasse für alle smarten Geräte.
