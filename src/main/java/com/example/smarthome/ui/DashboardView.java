@@ -17,22 +17,18 @@ public class DashboardView extends VerticalLayout {
 
     public DashboardView(SmartHomeManager manager) {
         this.manager = manager;
-        
-        add(new H1("Smart Home Übersicht"));
-        add(statsLayout);
-        
-        createStatisticCards();
-    }
 
-    private void createStatisticCards() {
+        add(new H1("Smart Home Dashboard"));
+        add(statsLayout);
+
         updateStatistics();
     }
 
-    public void updateStatistics() {
+    private void updateStatistics() {
         statsLayout.removeAll();
-        statsLayout.add(new H3("Gesamtverbrauch: " + String.format("%.2f", manager.getTotalPowerUsage()) + " W"));
-        statsLayout.add(new H3("Durchschnittsverbrauch: " + Stringformat("%.2f", manager.getAveragePowerUsage()) + " W"));
-        statsLayout.add(new H3("Aktive Geräte: " + manager.getActiveDeviceCount()));
+        statsLayout.add(new H3("Gesamtverbrauch: " + String.format("%.2f W", manager.getTotalPowerUsage())));
+        statsLayout.add(new H3("Durchschnittsverbrauch: " + String.format("%.2f W", manager.getAveragePowerUsage())));
+        statsLayout.add(new H3("Aktive Geraete: " + manager.getActiveDeviceCount()));
         statsLayout.add(new H3("Favoriten: " + manager.filterFavorites().size()));
     }
 }

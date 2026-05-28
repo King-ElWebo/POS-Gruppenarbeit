@@ -24,12 +24,11 @@ public final class MainLayout extends AppLayout {
     }
 
     private Component createApplicationHeader() {
-        // TODO Replace with real application logo and name
-        var appLogo = new Avatar("My Application");
+        var appLogo = new Avatar("IoT");
         appLogo.addClassName("app-logo");
         appLogo.addThemeVariants(AvatarVariant.AURA_FILLED, AvatarVariant.XSMALL);
 
-        var appName = new Span("My Application");
+        var appName = new Span("IoT Dashboard");
         appName.addClassName("app-name");
 
         var header = new HorizontalLayout(appLogo, appName);
@@ -45,7 +44,7 @@ public final class MainLayout extends AppLayout {
     }
 
     private Component createApplicationFooter() {
-        var footer = new VerticalLayout(new Span("Made with ❤️ with Vaadin"));
+        var footer = new VerticalLayout(new Span("IoT Dashboard"));
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
         footer.addClassName("app-footer");
         return footer;
