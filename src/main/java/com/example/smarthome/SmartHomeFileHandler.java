@@ -22,6 +22,7 @@ public class SmartHomeFileHandler {
         this.filePath = filePath;
     }
 
+    // Schreibt alle Geraete als CSV-Zeilen in die Datei (eine Zeile pro Geraet).
     public void saveDevices(List<SmartDevice> devices) {
         try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
             for (SmartDevice device : devices) {
@@ -33,6 +34,7 @@ public class SmartHomeFileHandler {
         }
     }
 
+    // Liest die CSV-Datei und baut daraus wieder Geraete-Objekte. Gibt leere Liste, falls Datei fehlt.
     public List<SmartDevice> loadDevices() {
         List<SmartDevice> devices = new ArrayList<>();
         if (!Files.exists(filePath)) {
@@ -53,6 +55,8 @@ public class SmartHomeFileHandler {
         return devices;
     }
 
+    // Wandelt ein Geraet in eine CSV-Zeile um. Basis-Felder sind bei allen Typen gleich,
+    // danach folgen je nach Typ unterschiedliche Zusatz-Felder (z. B. Helligkeit bei Light).
     private String deviceToCsv(SmartDevice device) {
         String base = String.format("%s;%d;%s;%s;%b;%s;%b",
                 device.getDeviceType(),
@@ -78,6 +82,8 @@ public class SmartHomeFileHandler {
         return base;
     }
 
+    // Wandelt eine CSV-Zeile zurueck in ein passendes Geraet-Objekt (Light/Thermostat/Speaker).
+    // Spalten 0-6 sind immer gleich, ab Spalte 7 kommen typ-spezifische Werte.
     private SmartDevice csvToDevice(String line) {
         String[] parts = line.split(";", -1);
         if (parts.length < 7) {
