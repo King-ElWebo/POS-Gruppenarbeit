@@ -19,6 +19,12 @@ public abstract class SmartDevice {
     // Erweiterter Konstruktor (passend zur Application.java und UI)
     public SmartDevice(int id, String name, String room, double powerUsage) {
         this(name, room);
+        if (id < 0) {
+            throw new SmartHomeException("ID darf nicht negativ sein.");
+        }
+        if (powerUsage < 0) {
+            throw new SmartHomeException("Stromverbrauch darf nicht negativ sein.");
+        }
         this.id = id;
         this.powerUsage = powerUsage;
         this.turnedOn = false;
@@ -52,13 +58,34 @@ public abstract class SmartDevice {
         }
     }
 
+    public double calculateDailyConsumption(int hours) {
+        if (hours < 0) {
+            throw new SmartHomeException("Stunden dürfen nicht negativ sein.");
+        }
+        return this.powerUsage * hours;
+    }
+
     public abstract String getDeviceType();
     public abstract String performAction();
 
     public int getId() { return id; }
     public String getName() { return name; }
+    public void setName(String name) {
+        validateText(name, "Name");
+        this.name = name;
+    }
     public String getRoom() { return room; }
+    public void setRoom(String room) {
+        validateText(room, "Raum");
+        this.room = room;
+    }
     public double getPowerUsage() { return powerUsage; }
+    public void setPowerUsage(double powerUsage) {
+        if (powerUsage < 0) {
+            throw new SmartHomeException("Stromverbrauch darf nicht negativ sein.");
+        }
+        this.powerUsage = powerUsage;
+    }
     public boolean isFavorite() { return favorite; }
     public void setFavorite(boolean favorite) { this.favorite = favorite; }
 }
