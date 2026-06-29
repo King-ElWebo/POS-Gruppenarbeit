@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * JUnit-Testklasse für unseren SmartHomeManager.
+ * Hier wird das gesamte "Gehirn" der App (Hinzufügen, Entfernen, Filtern mit Streams)
+ * detailliert getestet, ohne dass man die Webseite im Browser starten muss.
+ */
 public class SmartHomeManagerTest {
 
     private SmartHomeManager manager;
@@ -13,20 +18,28 @@ public class SmartHomeManagerTest {
     private SmartThermostat thermostat;
     private SmartSpeaker speaker;
 
+    /**
+     * Bereitet die Objekte vor, bevor jeder Test gestartet wird.
+     * So hat jeder Test immer eine saubere, leere Umgebung.
+     */
     @BeforeEach
     public void setup() {
         manager = new SmartHomeManager();
+        // Leere Geräte zum Testen, die wir nach Bedarf in die Liste des Managers schieben können
         light = new SmartLight(1, "Wohnzimmerlampe", "Wohnzimmer", 15.0, 80, "Warmweiß");
         thermostat = new SmartThermostat(2, "Heizung", "Badezimmer", 45.0, 21.5, 23.0);
         speaker = new SmartSpeaker(3, "Küchenradio", "Küche", 5.0, 40, "Morning Show");
     }
 
+    /**
+     * Testet, ob das Hinzufügen (Create) und das Erstellen eines Log-Eintrags funktioniert.
+     */
     @Test
     public void testAddDevice() {
-        assertEquals(0, manager.getDeviceCount());
+        assertEquals(0, manager.getDeviceCount()); // Startet bei 0
         manager.addDevice(light);
-        assertEquals(1, manager.getDeviceCount());
-        assertEquals(light, manager.findDeviceById(1));
+        assertEquals(1, manager.getDeviceCount()); // Jetzt ist 1 drin
+        assertEquals(light, manager.findDeviceById(1)); // Gerät ist auch wirklich da
 
         // Test logs
         List<String> logs = manager.getLogs();
@@ -39,21 +52,29 @@ public class SmartHomeManagerTest {
         assertThrows(SmartHomeException.class, () -> manager.addDevice(null));
     }
 
+    /**
+     * Sichert ab, dass IDs im System einzigartig bleiben.
+     */
     @Test
     public void testAddDuplicateIdThrowsException() {
-        manager.addDevice(light);
-        SmartLight duplicate = new SmartLight(1, "Andere Lampe", "Wohnzimmer", 10.0, 50, "Weiß");
+        manager.addDevice(light); // ID 1
+        SmartLight duplicate = new SmartLight(1, "Andere Lampe", "Wohnzimmer", 10.0, 50, "Weiß"); // Wieder ID 1
         assertThrows(SmartHomeException.class, () -> manager.addDevice(duplicate));
     }
 
+    /**
+     * Testet das Löschen (Delete) über eine ID.
+     */
     @Test
     public void testRemoveDeviceById() {
         manager.addDevice(light);
         manager.addDevice(thermostat);
 
         assertEquals(2, manager.getDeviceCount());
-        manager.removeDevice(1);
+        manager.removeDevice(1); // Lampe löschen
         assertEquals(1, manager.getDeviceCount());
+        
+        // Prüfen, ob die ID 1 wirklich nicht mehr gefunden wird
         assertThrows(SmartHomeException.class, () -> manager.findDeviceById(1));
 
         List<String> logs = manager.getLogs();
@@ -62,7 +83,7 @@ public class SmartHomeManagerTest {
 
     @Test
     public void testRemoveNonExistingDeviceByIdThrowsException() {
-        assertThrows(SmartHomeException.class, () -> manager.removeDevice(99));
+        assertThrows(SmartHomeException.class, () -> manager.removeDevice(99)); // ID gibt's nicht
     }
 
     @Test
@@ -75,13 +96,19 @@ public class SmartHomeManagerTest {
         assertThrows(SmartHomeException.class, () -> manager.findDeviceById(1));
     }
 
+    /**
+     * Testet das Aktualisieren (Update). Eine alte Lampe in der Liste soll 
+     * mit einer neuen (veränderten) Lampe überschrieben werden.
+     */
     @Test
     public void testUpdateDevice() {
         manager.addDevice(light);
 
+        // Neues Objekt, aber SELBE ID (1)
         SmartLight updatedLight = new SmartLight(1, "Neue Lampe", "Küche", 20.0, 90, "Blau");
         manager.updateDevice(updatedLight);
 
+        // Wir lesen die ID 1 wieder aus der Liste und schauen, ob die neuen Werte da sind
         SmartDevice found = manager.findDeviceById(1);
         assertEquals("Neue Lampe", found.getName());
         assertEquals("Küche", found.getRoom());
@@ -114,27 +141,33 @@ public class SmartHomeManagerTest {
         assertThrows(SmartHomeException.class, () -> manager.findDeviceById(99));
     }
 
+    /**
+     * Testet die Suchleiste (case-insensitive = Groß-/Kleinschreibung egal).
+     */
     @Test
     public void testSearchByName() {
         manager.addDevice(light);      // "Wohnzimmerlampe"
         manager.addDevice(thermostat); // "Heizung"
         manager.addDevice(speaker);    // "Küchenradio"
 
-        List<SmartDevice> results = manager.searchByName("lampe");
+        List<SmartDevice> results = manager.searchByName("lampe"); // kleingeschrieben!
         assertEquals(1, results.size());
         assertEquals(light, results.get(0));
 
-        results = manager.searchByName("KÜCHE");
+        results = manager.searchByName("KÜCHE"); // GROSSGESCHRIEBEN!
         assertEquals(1, results.size());
         assertEquals(speaker, results.get(0));
 
-        results = manager.searchByName("");
+        results = manager.searchByName(""); // leere suche
         assertEquals(3, results.size());
 
-        results = manager.searchByName(null);
+        results = manager.searchByName(null); // gar keine suche
         assertEquals(3, results.size());
     }
 
+    /**
+     * Testet den Raum-Filter.
+     */
     @Test
     public void testFilterByRoom() {
         manager.addDevice(light);      // "Wohnzimmer"
@@ -145,7 +178,7 @@ public class SmartHomeManagerTest {
         assertEquals(1, results.size());
         assertEquals(light, results.get(0));
 
-        results = manager.filterByRoom("wohnzimmer ");
+        results = manager.filterByRoom("wohnzimmer "); // Mit Leerzeichen (Trim!)
         assertEquals(1, results.size());
 
         results = manager.filterByRoom("");
@@ -176,14 +209,17 @@ public class SmartHomeManagerTest {
         manager.addDevice(thermostat);
         manager.addDevice(speaker);
 
+        // Wir schalten 2 von 3 Geräten ein
         light.turnOn();
         speaker.turnOn();
 
+        // Suche alle eingeschalteten
         List<SmartDevice> onDevices = manager.filterByStatus(true);
         assertEquals(2, onDevices.size());
         assertTrue(onDevices.contains(light));
         assertTrue(onDevices.contains(speaker));
 
+        // Suche alle ausgeschalteten
         List<SmartDevice> offDevices = manager.filterByStatus(false);
         assertEquals(1, offDevices.size());
         assertTrue(offDevices.contains(thermostat));
@@ -202,6 +238,9 @@ public class SmartHomeManagerTest {
         assertEquals(light, favorites.get(0));
     }
 
+    /**
+     * Testet unsere in-place Sortierfunktion (Alphabetisch).
+     */
     @Test
     public void testSortByName() {
         SmartLight a = new SmartLight(10, "B Lampe", "Zimmer", 10.0, 50, "Weiß");
@@ -215,11 +254,15 @@ public class SmartHomeManagerTest {
         manager.sortByName();
 
         List<SmartDevice> sorted = manager.getAllDevices();
+        // Sollte jetzt alphabetisch A, B, C sein (nicht die Reihenfolge, in der wir sie hinzugefügt haben)
         assertEquals("A Lampe", sorted.get(0).getName());
         assertEquals("B Lampe", sorted.get(1).getName());
         assertEquals("C Lampe", sorted.get(2).getName());
     }
 
+    /**
+     * Testet unsere Stromverbrauchs-Sortierung.
+     */
     @Test
     public void testSortByPowerUsage() {
         manager.addDevice(light);      // 15.0 W
@@ -229,11 +272,14 @@ public class SmartHomeManagerTest {
         manager.sortByPowerUsage();
 
         List<SmartDevice> sorted = manager.getAllDevices();
-        assertEquals(speaker, sorted.get(0));
+        assertEquals(speaker, sorted.get(0)); // Wenigster Strom zuerst
         assertEquals(light, sorted.get(1));
-        assertEquals(thermostat, sorted.get(2));
+        assertEquals(thermostat, sorted.get(2)); // Meister Strom zuletzt
     }
 
+    /**
+     * Testet unsere Gruppierungsfunktion (Erzeugt eine Map / Wörterbuch).
+     */
     @Test
     public void testGroupByRoom() {
         manager.addDevice(light);      // Wohnzimmer
@@ -242,9 +288,9 @@ public class SmartHomeManagerTest {
         manager.addDevice(secondLight);
 
         Map<String, List<SmartDevice>> grouped = manager.groupByRoom();
-        assertEquals(2, grouped.size());
-        assertEquals(2, grouped.get("Wohnzimmer").size());
-        assertEquals(1, grouped.get("Badezimmer").size());
+        assertEquals(2, grouped.size()); // 2 Räume
+        assertEquals(2, grouped.get("Wohnzimmer").size()); // 2 Geräte im Wohnzimmer
+        assertEquals(1, grouped.get("Badezimmer").size()); // 1 Gerät im Bad
     }
 
     @Test
@@ -260,8 +306,12 @@ public class SmartHomeManagerTest {
         assertEquals(1, grouped.get("Speaker").size());
     }
 
+    /**
+     * Testet das Berechnen der Zahlen fürs Dashboard (Summen und Durchschnitte).
+     */
     @Test
     public void testPowerUsageStats() {
+        // Grenzfall: Liste noch leer
         assertEquals(0.0, manager.getTotalPowerUsage());
         assertEquals(0.0, manager.getAveragePowerUsage());
         assertNull(manager.getHighestPowerUsageDevice());
@@ -273,12 +323,15 @@ public class SmartHomeManagerTest {
 
         light.turnOn();
 
-        assertEquals(65.0, manager.getTotalPowerUsage());
-        assertEquals(65.0 / 3, manager.getAveragePowerUsage(), 0.001);
+        assertEquals(65.0, manager.getTotalPowerUsage()); // 15 + 45 + 5
+        assertEquals(65.0 / 3, manager.getAveragePowerUsage(), 0.001); // ca 21.6 Watt
         assertEquals(thermostat, manager.getHighestPowerUsageDevice());
-        assertEquals(1, manager.getActiveDeviceCount());
+        assertEquals(1, manager.getActiveDeviceCount()); // Nur 1 eingeschaltet
     }
 
+    /**
+     * Testet unsere "Königsmethode" (Kombinieren von zwei Stream-Aktionen in einer Kette).
+     */
     @Test
     public void testFilterByRoomAndSortByPowerUsage() {
         SmartLight l1 = new SmartLight(10, "L1", "Wohnzimmer", 20.0, 50, "Weiß");
@@ -290,9 +343,9 @@ public class SmartHomeManagerTest {
         manager.addDevice(l3);
 
         List<SmartDevice> result = manager.filterByRoomAndSortByPowerUsage("Wohnzimmer");
-        assertEquals(2, result.size());
-        assertEquals(l2, result.get(0)); // 10.0 W
-        assertEquals(l1, result.get(1)); // 20.0 W
+        assertEquals(2, result.size()); // Nur die zwei aus dem Wohnzimmer
+        assertEquals(l2, result.get(0)); // Das mit 10 W muss VOR dem mit 20 W kommen!
+        assertEquals(l1, result.get(1)); 
     }
 
     @Test
